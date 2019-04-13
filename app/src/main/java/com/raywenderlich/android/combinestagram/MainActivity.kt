@@ -30,7 +30,10 @@
 
 package com.raywenderlich.android.combinestagram
 
+import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
+import android.graphics.BitmapFactory
+import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
@@ -38,38 +41,52 @@ import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
-  private lateinit var viewModel: SharedViewModel
+    private lateinit var viewModel: SharedViewModel
 
-  override fun onCreate(savedInstanceState: Bundle?) {
-    super.onCreate(savedInstanceState)
-    setContentView(R.layout.activity_main)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
 
-    title = getString(R.string.collage)
+        title = getString(R.string.collage)
 
-    viewModel = ViewModelProviders.of(this).get(SharedViewModel::class.java)
+        viewModel = ViewModelProviders.of(this).get(SharedViewModel::class.java)
 
-    addButton.setOnClickListener {
-      actionAdd()
+        addButton.setOnClickListener {
+            actionAdd()
+        }
+
+        clearButton.setOnClickListener {
+            actionClear()
+        }
+
+        saveButton.setOnClickListener {
+            actionSave()
+        }
+
+        viewModel.getSelectedPhotos().observe(this, Observer { photos ->
+            photos?.let {
+                if (photos.isNotEmpty()) {
+                    val bitmaps =
+                        photos.map { BitmapFactory.decodeResource(resources, it.drawable) }
+                    val newBitmap = combineImages(bitmaps)
+                    collageImage.setImageDrawable(BitmapDrawable(resources, newBitmap))
+                } else {
+                    actionClear()
+                }
+            }
+        })
     }
 
-    clearButton.setOnClickListener {
-      actionClear()
+    private fun actionAdd() {
+        viewModel.addPhoto(PhotoStore.photos[0])
     }
 
-    saveButton.setOnClickListener {
-      actionSave()
+    private fun actionClear() {
+        viewModel.clearPhotos()
+        collageImage.setImageResource(android.R.color.transparent)
     }
-  }
 
-  private fun actionAdd() {
-    println("actionAdd")
-  }
-
-  private fun actionClear() {
-    println("actionClear")
-  }
-
-  private fun actionSave() {
-    println("actionSave")
-  }
+    private fun actionSave() {
+        println("actionSave")
+    }
 }
