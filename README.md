@@ -1,4 +1,4 @@
 # Combinestagram
-Learning RxKotlin
+Learning RxKotlin from www.raywenderlich.com
 
 Episode 11
