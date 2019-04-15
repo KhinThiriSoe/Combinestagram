@@ -68,13 +68,16 @@ class SharedViewModel : ViewModel() {
         super.onCleared()
     }
 
-    fun addPhoto(photo: Photo){
-        imagesSubject.value!!.add(photo)
-        imagesSubject.onNext(imagesSubject.value!!)
-    }
-
     fun clearPhotos(){
         imagesSubject.value!!.clear()
+    }
+
+    fun subscribeSelectedPhotosFragment(fragment: PhotosBottomDialogFragment){
+        subscriptions.add(fragment.selectedPhotos.
+            subscribe {
+                imagesSubject.value!!.add(it)
+                imagesSubject.onNext(imagesSubject.value!!)
+        })
     }
 
     fun saveBitmapFromImageView(imageView: ImageView, context: Context) {

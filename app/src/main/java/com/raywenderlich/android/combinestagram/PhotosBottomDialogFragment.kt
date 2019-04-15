@@ -34,15 +34,22 @@ import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.design.widget.BottomSheetDialogFragment
 import android.support.v7.widget.GridLayoutManager
-import android.view.ViewGroup
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
+import io.reactivex.Observable
+import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.layout_photo_bottom_sheet.*
 
 
 class PhotosBottomDialogFragment : BottomSheetDialogFragment(), PhotosAdapter.PhotoListener {
 
   private lateinit var viewModel: SharedViewModel
+
+  private val selectedPhotoSubject = PublishSubject.create<Photo>()
+
+  val selectedPhotos: Observable<Photo>
+    get() = selectedPhotoSubject
 
   override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
     return inflater.inflate(R.layout.layout_photo_bottom_sheet, container, false)
@@ -65,7 +72,7 @@ class PhotosBottomDialogFragment : BottomSheetDialogFragment(), PhotosAdapter.Ph
   }
 
   override fun photoClicked(photo: Photo) {
-
+    selectedPhotoSubject.onNext(photo)
   }
 
   companion object {
