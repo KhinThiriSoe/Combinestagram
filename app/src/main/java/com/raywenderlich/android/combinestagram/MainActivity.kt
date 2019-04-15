@@ -106,8 +106,6 @@ class MainActivity : AppCompatActivity() {
     private fun actionClear() {
         viewModel.clearPhotos()
         collageImage.setImageResource(android.R.color.transparent)
-
-        title = resources.getString(R.string.collage)
         updateUI(listOf())
     }
 
