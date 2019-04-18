@@ -38,6 +38,7 @@ import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.util.Log
 import android.widget.ImageView
+import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.subjects.BehaviorSubject
 import java.io.File
@@ -68,38 +69,51 @@ class SharedViewModel : ViewModel() {
         super.onCleared()
     }
 
-    fun clearPhotos(){
+    fun clearPhotos() {
         imagesSubject.value!!.clear()
     }
 
-    fun subscribeSelectedPhotosFragment(fragment: PhotosBottomDialogFragment){
-        subscriptions.add(fragment.selectedPhotos.
-            subscribe {
+    fun subscribeSelectedPhotosFragment(fragment: PhotosBottomDialogFragment) {
+        subscriptions.add(fragment.selectedPhotos
+            .doOnComplete {
+                Log.d("SharedViewModel", "complete selecting photos")
+            }
+            .subscribe {
                 imagesSubject.value!!.add(it)
                 imagesSubject.onNext(imagesSubject.value!!)
-        })
+            })
     }
 
-    fun saveBitmapFromImageView(imageView: ImageView, context: Context) {
-        val tmpImg = "${System.currentTimeMillis()}.png"
+    fun saveBitmapFromImageView(imageView: ImageView, context: Context): Single<String> {
 
-        val os: OutputStream?
+        return Single.create {
 
-        val collagesDirectory = File(context.getExternalFilesDir(null), "collages")
-        if (!collagesDirectory.exists()) {
-            collagesDirectory.mkdirs()
-        }
+            val tmpImg = "${System.currentTimeMillis()}.png"
 
-        val file = File(collagesDirectory, tmpImg)
+            val os: OutputStream?
 
-        try {
-            os = FileOutputStream(file)
-            val bitmap = (imageView.drawable as BitmapDrawable).bitmap
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, os)
-            os.flush()
-            os.close()
-        } catch (e: IOException) {
-            Log.e("MainActivity", "Problem saving collage", e)
+            val collagesDirectory = File(context.getExternalFilesDir(null), "collages")
+            if (!collagesDirectory.exists()) {
+                collagesDirectory.mkdirs()
+            }
+
+            val file = File(collagesDirectory, tmpImg)
+
+            try {
+                os = FileOutputStream(file)
+                val bitmap = (imageView.drawable as BitmapDrawable).bitmap
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, os)
+                os.flush()
+                os.close()
+
+                it.onSuccess(tmpImg)
+
+            } catch (e: IOException) {
+                Log.e("MainActivity", "Problem saving collage", e)
+                it.onError(e)
+            }
+
         }
     }
+
 }

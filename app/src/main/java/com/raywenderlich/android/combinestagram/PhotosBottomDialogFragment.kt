@@ -44,40 +44,49 @@ import kotlinx.android.synthetic.main.layout_photo_bottom_sheet.*
 
 class PhotosBottomDialogFragment : BottomSheetDialogFragment(), PhotosAdapter.PhotoListener {
 
-  private lateinit var viewModel: SharedViewModel
+    private lateinit var viewModel: SharedViewModel
 
-  private val selectedPhotoSubject = PublishSubject.create<Photo>()
+    private val selectedPhotoSubject = PublishSubject.create<Photo>()
 
-  val selectedPhotos: Observable<Photo>
-    get() = selectedPhotoSubject
+    val selectedPhotos: Observable<Photo>
+        get() = selectedPhotoSubject
 
-  override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-    return inflater.inflate(R.layout.layout_photo_bottom_sheet, container, false)
-  }
-
-  override fun onActivityCreated(savedInstanceState: Bundle?) {
-    super.onActivityCreated(savedInstanceState)
-
-    val ctx = activity
-    ctx?.let {
-      viewModel = ViewModelProviders.of(ctx).get(SharedViewModel::class.java)
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        return inflater.inflate(R.layout.layout_photo_bottom_sheet, container, false)
     }
-  }
 
-  override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-    super.onViewCreated(view, savedInstanceState)
-
-    photosRecyclerView.layoutManager = GridLayoutManager(context, 3)
-    photosRecyclerView.adapter = PhotosAdapter(PhotoStore.photos, this)
-  }
-
-  override fun photoClicked(photo: Photo) {
-    selectedPhotoSubject.onNext(photo)
-  }
-
-  companion object {
-    fun newInstance(): PhotosBottomDialogFragment {
-      return PhotosBottomDialogFragment()
+    override fun onDestroy() {
+        selectedPhotoSubject.onComplete()
+        super.onDestroy()
     }
-  }
+
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+
+        val ctx = activity
+        ctx?.let {
+            viewModel = ViewModelProviders.of(ctx).get(SharedViewModel::class.java)
+        }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        photosRecyclerView.layoutManager = GridLayoutManager(context, 3)
+        photosRecyclerView.adapter = PhotosAdapter(PhotoStore.photos, this)
+    }
+
+    override fun photoClicked(photo: Photo) {
+        selectedPhotoSubject.onNext(photo)
+    }
+
+    companion object {
+        fun newInstance(): PhotosBottomDialogFragment {
+            return PhotosBottomDialogFragment()
+        }
+    }
 }
