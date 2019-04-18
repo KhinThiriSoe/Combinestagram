@@ -36,6 +36,8 @@ import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import android.widget.Toast
+import io.reactivex.rxkotlin.subscribeBy
 import kotlinx.android.synthetic.main.activity_main.*
 
 
@@ -110,6 +112,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun actionSave() {
-        println("actionSave")
+        viewModel.saveBitmapFromImageView(collageImage, this)
+            .subscribeBy(
+                onSuccess = { file ->
+                    Toast.makeText(this, "$file saved", Toast.LENGTH_SHORT).show()
+                },
+                onError = {
+                    Toast.makeText(
+                        this,
+                        "Error saving file ${it.localizedMessage}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            )
     }
 }
