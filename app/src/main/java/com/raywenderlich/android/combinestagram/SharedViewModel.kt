@@ -35,6 +35,7 @@ import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.ViewModel
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
 import android.util.Log
 import android.widget.ImageView
@@ -50,6 +51,9 @@ import java.io.OutputStream
 class SharedViewModel : ViewModel() {
 
     private val selectedPhotos = MutableLiveData<List<Photo>>()
+
+    private val thumbnailStatus = MutableLiveData<ThumbnailStatus>()
+
     private val subscriptions = CompositeDisposable()
     private val imagesSubject: BehaviorSubject<MutableList<Photo>> =
         BehaviorSubject.createDefault(mutableListOf())
@@ -64,6 +68,10 @@ class SharedViewModel : ViewModel() {
         return selectedPhotos
     }
 
+    fun getThumbnailStatus(): LiveData<ThumbnailStatus> {
+        return thumbnailStatus
+    }
+
     override fun onCleared() {
         subscriptions.dispose()
         super.onCleared()
@@ -74,13 +82,29 @@ class SharedViewModel : ViewModel() {
     }
 
     fun subscribeSelectedPhotosFragment(fragment: PhotosBottomDialogFragment) {
-        subscriptions.add(fragment.selectedPhotos
+
+        val newPhotos = fragment.selectedPhotos.share()
+
+        subscriptions.add(newPhotos
             .doOnComplete {
-                Log.d("SharedViewModel", "complete selecting photos")
+                Log.v("SharedViewModel", "Completed selecting photos")
+            }
+            .takeWhile { imagesSubject.value!!.size <6 }
+            .filter { newImage ->
+                val bitmap = BitmapFactory.decodeResource(fragment.resources, newImage.drawable)
+                bitmap.width > bitmap.height
+            }.filter { (newImage: Int) ->
+                !(imagesSubject.value!!.map { it.drawable }.contains(newImage))
             }
             .subscribe {
                 imagesSubject.value!!.add(it)
                 imagesSubject.onNext(imagesSubject.value!!)
+            })
+
+        subscriptions.add(newPhotos
+            .ignoreElements()
+            .subscribe {
+                thumbnailStatus.postValue(ThumbnailStatus.READY)
             })
     }
 
