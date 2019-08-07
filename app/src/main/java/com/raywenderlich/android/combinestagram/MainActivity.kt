@@ -86,6 +86,12 @@ class MainActivity : AppCompatActivity() {
                 thumbnail.setImageDrawable(collageImage.drawable)
             }
         })
+
+        viewModel.getCollageStatus().observe(this, Observer { status ->
+            if (status == CollageStatus.COMPLETED){
+                Toast.makeText(this,"Collage is complete",Toast.LENGTH_SHORT).show()
+            }
+        })
     }
 
     private fun updateUI(photos: List<Photo>) {

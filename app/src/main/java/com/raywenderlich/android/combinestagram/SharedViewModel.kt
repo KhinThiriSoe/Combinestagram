@@ -55,14 +55,22 @@ class SharedViewModel : ViewModel() {
     private val selectedPhotos = MutableLiveData<List<Photo>>()
 
     private val thumbnailStatus = MutableLiveData<ThumbnailStatus>()
+    private val collageStatus = MutableLiveData<CollageStatus>()
 
     private val subscriptions = CompositeDisposable()
     private val imagesSubject: BehaviorSubject<MutableList<Photo>> =
         BehaviorSubject.createDefault(mutableListOf())
 
     init {
-        subscriptions.add(imagesSubject.subscribe {
+        val images = imagesSubject.share()
+        subscriptions.add(images.subscribe {
             selectedPhotos.value = imagesSubject.value
+        })
+
+        subscriptions.add(images
+            .skipWhile { it.size < 6 }
+            .subscribe {
+            collageStatus.postValue(CollageStatus.COMPLETED)
         })
     }
 
@@ -72,6 +80,10 @@ class SharedViewModel : ViewModel() {
 
     fun getThumbnailStatus(): LiveData<ThumbnailStatus> {
         return thumbnailStatus
+    }
+
+    fun getCollageStatus(): LiveData<CollageStatus> {
+        return collageStatus
     }
 
     override fun onCleared() {
@@ -91,7 +103,7 @@ class SharedViewModel : ViewModel() {
             .doOnComplete {
                 Log.v("SharedViewModel", "Completed selecting photos")
             }
-            .takeWhile { imagesSubject.value!!.size <6 }
+            .takeWhile { imagesSubject.value!!.size < 6 }
             .filter { newImage ->
                 val bitmap = BitmapFactory.decodeResource(fragment.resources, newImage.drawable)
                 bitmap.width > bitmap.height
@@ -102,6 +114,7 @@ class SharedViewModel : ViewModel() {
             .subscribe {
                 imagesSubject.value!!.add(it)
                 imagesSubject.onNext(imagesSubject.value!!)
+
             })
 
         subscriptions.add(newPhotos
