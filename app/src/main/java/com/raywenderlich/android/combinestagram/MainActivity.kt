@@ -89,7 +89,7 @@ class MainActivity : AppCompatActivity() {
 
         viewModel.getCollageStatus().observe(this, Observer { status ->
             if (status == CollageStatus.COMPLETED){
-                Toast.makeText(this,"Collage is complete",Toast.LENGTH_SHORT).show()
+                Toast.makeText(this,"Collage is complete", Toast.LENGTH_SHORT).show()
             }
         })
     }

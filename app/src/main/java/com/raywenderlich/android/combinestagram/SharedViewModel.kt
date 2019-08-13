@@ -63,15 +63,16 @@ class SharedViewModel : ViewModel() {
 
     init {
         val images = imagesSubject.share()
+
         subscriptions.add(images.subscribe {
             selectedPhotos.value = imagesSubject.value
         })
 
         subscriptions.add(images
-            .skipWhile { it.size < 6 }
+            .filter { it.size == 6 }
             .subscribe {
-            collageStatus.postValue(CollageStatus.COMPLETED)
-        })
+                collageStatus.postValue(CollageStatus.COMPLETED)
+            })
     }
 
     fun getSelectedPhotos(): LiveData<List<Photo>> {
@@ -107,14 +108,27 @@ class SharedViewModel : ViewModel() {
             .filter { newImage ->
                 val bitmap = BitmapFactory.decodeResource(fragment.resources, newImage.drawable)
                 bitmap.width > bitmap.height
-            }.filter { (newImage: Int) ->
-                !(imagesSubject.value!!.map { it.drawable }.contains(newImage))
+            }
+//            .filter { (newImage: Int) ->
+//                !(imagesSubject.value!!.map { it.drawable }.contains(newImage))
+//            }
+            .map { newImage ->
+                val operation =
+                    if (imagesSubject.value!!.map { it.drawable }.contains(newImage.drawable)) {
+                        PhotoOperation.ADD
+                    } else {
+                        PhotoOperation.REMOVE
+                    }
+                Pair(newImage, operation)
             }
             .debounce(250, TimeUnit.MILLISECONDS, AndroidSchedulers.mainThread())
             .subscribe {
-                imagesSubject.value!!.add(it)
+                if (it.second == PhotoOperation.ADD){
+                    imagesSubject.value!!.add(it.first)
+                }else {
+                    imagesSubject.value!!.remove(it.first)
+                }
                 imagesSubject.onNext(imagesSubject.value!!)
-
             })
 
         subscriptions.add(newPhotos
