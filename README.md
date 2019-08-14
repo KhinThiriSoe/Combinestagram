@@ -19,3 +19,18 @@ Episode 16 to 18 is in [HelloRxKotlin](https://github.com/KhinThiriSoe/HelloRxKo
 Episode 19 - 21 is in this repo
 
 Episode 22 is conclusion for this chapter
+
+## Chapter 3, Transforming Observables
+
+Episode 23 is an introduction
+
+Episode 24 is in [HelloRxKotlin](https://github.com/KhinThiriSoe/HelloRxKotlin)
+
+Episode 25 is in this repo
+
+Episode 26 - 29 is in [GitFeed](https://github.com/KhinThiriSoe/GitFeed)
+
+Episode 30 is conclusion
+
+## Chapter 4, Combining Observables
+
